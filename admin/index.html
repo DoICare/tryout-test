@@ -118,12 +118,6 @@
             margin-right: 4px;
         }
 
-        .btn-refresh {
-            background-color: #1e3a8a;
-            color: #ffffff;
-            padding: 8px 14px;
-        }
-
         .btn-edit {
             background-color: #f59e0b;
             color: #ffffff;
@@ -148,7 +142,6 @@
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            display: none;
         }
 
         .edit-section h2 {
@@ -197,12 +190,34 @@
 <div class="container">
     <div class="header">
         <h1>Dashboard Admin - Data Pendaftar Try Out</h1>
-        <button class="btn btn-refresh" onclick="muatDataAdmin()">Muat Ulang Data</button>
     </div>
 
-    <!-- Info Ringkasan Sisa Kuota Sesi -->
-    <div class="kuota-summary" id="ringkasan-kuota"></div>
+    <!-- Ringkasan Kuota Sesi -->
+    <div id="ringkasan-kuota" class="kuota-summary">
+        <div class="kuota-card">
+            <div>
+                <strong>Sesi 1</strong>
+                <span>08:00 - 11:15</span>
+            </div>
+            <div class="kuota-angka">Sisa: 150</div>
+        </div>
+        <div class="kuota-card">
+            <div>
+                <strong>Sesi 2</strong>
+                <span>12:00 - 15:15</span>
+            </div>
+            <div class="kuota-angka">Sisa: 150</div>
+        </div>
+        <div class="kuota-card">
+            <div>
+                <strong>Sesi 3</strong>
+                <span>15:15 - 18:30</span>
+            </div>
+            <div class="kuota-angka">Sisa: 150</div>
+        </div>
+    </div>
 
+    <!-- Tabel Pendaftar -->
     <div class="table-wrapper">
         <table>
             <thead>
@@ -218,14 +233,23 @@
             </thead>
             <tbody id="tabel-pendaftar">
                 <tr>
-                    <td colspan="7" class="center">Memuat data pendaftar...</td>
+                    <td class="center">1</td>
+                    <td>Ahmad Fauzi</td>
+                    <td>Jawa Barat</td>
+                    <td>Sesi 1</td>
+                    <td>Sejarah, Sosiologi</td>
+                    <td>2026-11-06 14:20:00</td>
+                    <td class="center">
+                        <button class="btn btn-edit">Edit</button>
+                        <button class="btn btn-delete">Hapus</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Form Edit Data Pendaftar (Method PUT) -->
-    <div class="edit-section" id="form-edit-container">
+    <!-- Form Edit Data Pendaftar (Siap untuk Method PUT) -->
+    <div id="form-edit-container" class="edit-section">
         <h2>Edit Data Pendaftar</h2>
         <form id="formEditPendaftar">
             <input type="hidden" id="edit_id" name="id">
@@ -248,7 +272,7 @@
                 </div>
             </div>
             <button type="submit" class="btn btn-save">Simpan Perubahan</button>
-            <button type="button" class="btn btn-cancel" id="btn-batal-edit">Batal</button>
+            <button type="button" id="btn-batal-edit" class="btn btn-cancel">Batal</button>
         </form>
     </div>
 </div>
@@ -272,123 +296,121 @@
                 ringkasanKuota.innerHTML = '';
                 result.sesi.forEach(s => {
                     ringkasanKuota.innerHTML += `
-                        <div class="kuota-card">
-                            <div>
-                                <strong>${s.nama_sesi}</strong>
-                                <span>${s.waktu}</span>
-                            </div>
-                            <div class="kuota-angka">Sisa: ${s.kuota_tersisa}</div>
+                    <div class="kuota-card">
+                        <div>
+                            <strong>${s.nama_sesi}</strong>
+                            <span>${s.waktu}</span>
                         </div>
-                    `;
-                });
-
-                daftarPendaftar = result.pendaftar;
-                tabelPendaftar.innerHTML = '';
-
-                if (daftarPendaftar.length === 0) {
-                    tabelPendaftar.innerHTML = '<tr><td colspan="7" class="center">Belum ada data pendaftar.</td></tr>';
-                    return;
-                }
-
-                daftarPendaftar.forEach((item, index) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="center">${index + 1}</td>
-                        <td>${item.nama_siswa}</td>
-                        <td>${item.provinsi}</td>
-                        <td>${item.sesi_dipilih}</td>
-                        <td>${item.mapel_pilihan}</td>
-                        <td>${item.created_at || '-'}</td>
-                        <td class="center">
-                            <button class="btn btn-edit" onclick="bukaEdit(${item.id})">Edit</button>
-                            <button class="btn btn-delete" onclick="hapusPendaftar(${item.id})">Hapus</button>
-                        </td>
-                    `;
-                    tabelPendaftar.appendChild(tr);
+                        <div class="kuota-angka">Sisa: ${s.kuota_tersisa}</div>
+                    </div>
+                `;
                 });
             }
-        } catch (error) {
-            tabelPendaftar.innerHTML = '<tr><td colspan="7" class="center">Gagal memuat data dari server API.</td></tr>';
-        }
-    }
 
-    function bukaEdit(id) {
-        const siswa = daftarPendaftar.find(item => parseInt(item.id) === parseInt(id));
-        if (!siswa) return;
+            daftarPendaftar = result.pendaftar;
+            tabelPendaftar.innerHTML = '';
 
-        document.getElementById('edit_id').value = siswa.id;
-        document.getElementById('edit_nama').value = siswa.nama_siswa;
-        document.getElementById('edit_provinsi').value = siswa.provinsi;
-        document.getElementById('edit_sesi').value = siswa.sesi_dipilih;
-        document.getElementById('edit_mapel').value = siswa.mapel_pilihan;
-
-        formEditContainer.style.display = 'block';
-        formEditContainer.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    document.getElementById('btn-batal-edit').addEventListener('click', function () {
-        formEditContainer.style.display = 'none';
-        formEditPendaftar.reset();
-    });
-
-    // Simpan perubahan data (Method PUT)
-    formEditPendaftar.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const payload = {
-            id: document.getElementById('edit_id').value,
-            nama_siswa: document.getElementById('edit_nama').value.trim(),
-            provinsi: document.getElementById('edit_provinsi').value.trim(),
-            sesi_dipilih: document.getElementById('edit_sesi').value.trim(),
-            mapel_pilihan: document.getElementById('edit_mapel').value.trim()
-        };
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.status === 'success') {
-                alert(result.message);
-                formEditContainer.style.display = 'none';
-                muatDataAdmin();
-            } else {
-                alert(result.message || 'Gagal memperbarui data.');
+            if (daftarPendaftar.length === 0) {
+                tabelPendaftar.innerHTML = '<tr><td colspan="7" class="center">Belum ada pendaftar.</td></tr>';
+                return;
             }
-        } catch (error) {
-            alert('Terjadi kesalahan koneksi saat memperbarui data.');
-        }
-    });
 
-    // Hapus data (Method DELETE)
-    async function hapusPendaftar(id) {
-        if (!confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}?id=${id}`, {
-                method: 'DELETE'
+            daftarPendaftar.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="center">${index + 1}</td>
+                    <td>${item.nama_siswa}</td>
+                    <td>${item.provinsi}</td>
+                    <td>${item.sesi_dipilih}</td>
+                    <td>${item.mapel_pilihan}</td>
+                    <td>${item.created_at || '-'}</td>
+                    <td class="center">
+                        <button class="btn btn-edit" onclick="bukaEdit(${item.id})">Edit</button>
+                        <button class="btn btn-delete" onclick="hapusPendaftar(${item.id})">Hapus</button>
+                    </td>
+                `;
+                tabelPendaftar.appendChild(tr);
             });
+    } catch (error) {
+        tabelPendaftar.innerHTML = '<tr><td colspan="7" class="center">Gagal memuat data dari server API.</td></tr>';
+    }
+}
 
-            const result = await response.json();
+function bukaEdit(id) {
+    const siswa = daftarPendaftar.find(item => parseInt(item.id) === parseInt(id));
+    if (!siswa) return;
 
-            if (response.ok && result.status === 'success') {
-                alert(result.message);
-                muatDataAdmin();
-            } else {
-                alert(result.message || 'Gagal menghapus data.');
-            }
-        } catch (error) {
-            alert('Terjadi kesalahan koneksi saat menghapus data.');
+    document.getElementById('edit_id').value = siswa.id;
+    document.getElementById('edit_nama').value = siswa.nama_siswa;
+    document.getElementById('edit_provinsi').value = siswa.provinsi;
+    document.getElementById('edit_sesi').value = siswa.sesi_dipilih;
+    document.getElementById('edit_mapel').value = siswa.mapel_pilihan;
+
+    formEditContainer.style.display = 'block';
+    formEditContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+document.getElementById('btn-batal-edit').addEventListener('click', function () {
+    formEditContainer.style.display = 'none';
+    formEditPendaftar.reset();
+});
+
+// simpan perubahan data pendaftar (Method PUT)
+formEditPendaftar.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const payload = {
+        id: document.getElementById('edit_id').value,
+        nama_siswa: document.getElementById('edit_nama').value.trim(),
+        provinsi: document.getElementById('edit_provinsi').value.trim(),
+        sesi_dipilih: document.getElementById('edit_sesi').value.trim(),
+        mapel_pilihan: document.getElementById('edit_mapel').value.trim()
+    };
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+
+        if (response.ok && result.status === 'success') {
+            alert(result.message);
+            formEditContainer.style.display = 'none';
+            muatDataAdmin(); // Refresh data
+        } else {
+            alert(result.message || 'Gagal memperbarui data pendaftar.');
         }
+    } catch (error) {
+        alert('Terjadi kesalahan koneksi saat memperbarui data pendaftar.');
+    }
+});
+
+// Hapus data pendaftar (Method DELETE)
+async function hapusPendaftar(id) {
+    if (!confirm('Apakah Anda yakin ingin menghapus pendaftar ini?')) {
+        return;
     }
 
-    muatDataAdmin();
+    try {
+        const response = await fetch(`${API_URL}?id=${id}`, { 
+            method: 'DELETE' 
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === 'success') {
+            alert(result.message);
+            muatDataAdmin(); // Refresh data
+        } else {
+            alert(result.message || 'Gagal menghapus data pendaftar.');
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan koneksi saat menghapus data pendaftar.');
+    }
+}
+muatDataAdmin(); // Load data saat halaman pertama kali dibuka
 </script>
 
 </body>
