@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Admin - Data Pendaftar Try Out</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7fb;
+            color: #333;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #eef2f7;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            color: #1e3a8a;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e2e8f0;
+        }
+
+        thead {
+            background-color: #1e3a8a;
+            color: #ffffff;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th.center, td.center {
+            text-align: center;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+
+        .btn-edit {
+            background-color: #f59e0b;
+            color: #ffffff;
+        }
+
+        .btn-edit:hover {
+            background-color: #d97706;
+        }
+
+        .btn-delete {
+            background-color: #ef4444;
+            color: #ffffff;
+        }
+
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+
+        /* Styling Form/Modal Edit (Untuk Method PUT) */
+        .edit-section {
+            margin-top: 28px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            display: none; /* Ubah ke block via JS saat tombol Edit diklik */
+        }
+
+        .edit-section h2 {
+            font-size: 18px;
+            color: #1e3a8a;
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background-color: #2563eb;
+            color: #ffffff;
+        }
+
+        .btn-cancel {
+            background-color: #64748b;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Dashboard Admin - Data Pendaftar Try Out</h1>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th class="center" style="width: 50px;">No</th>
+                    <th>Nama Siswa</th>
+                    <th>Provinsi</th>
+                    <th>Sesi Dipilih</th>
+                    <th>Mapel Pilihan</th>
+                    <th>Waktu Daftar</th>
+                    <th class="center" style="width: 150px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tabel-pendaftar">
+                <!-- Baris data pendaftar dari database akan dirender di sini -->
+                <tr>
+                    <td colspan="7" class="center">Belum ada data pendaftar.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Form Edit Data Pendaftar (Siap dipakai untuk Method PUT) -->
+    <div class="edit-section" id="form-edit-container">
+        <h2>Edit Data Pendaftar</h2>
+        <form id="formEditPendaftar">
+            <input type="hidden" id="edit_id" name="id">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edit_nama">Nama Siswa</label>
+                    <input type="text" id="edit_nama" name="nama_siswa" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_provinsi">Provinsi</label>
+                    <input type="text" id="edit_provinsi" name="provinsi" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_sesi">Sesi Dipilih</label>
+                    <input type="text" id="edit_sesi" name="sesi_dipilih" placeholder="Contoh: Sesi 1, Sesi 2" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_mapel">Mapel Pilihan</label>
+                    <input type="text" id="edit_mapel" name="mapel_pilihan" placeholder="Contoh: Sejarah, Ekonomi" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-save">Simpan Perubahan</button>
+            <button type="button" class="btn btn-cancel" id="btn-batal-edit">Batal</button>
+        </form>
+    </div>
+</div>
+
+<!-- Tempat menambahkan kode JavaScript / Fetch API Anda -->
+<script>
+    const API_URL = '../api/index.php';
+    const tabelPendaftar = document.getElementById('tabel-pendaftar');
+    const ringkasanKuota = document.getElementById('ringkasan-kuota');
+    const formEditContainer = document.getElementById('form-edit-container');
+    const formEditPendaftar = document.getElementById('formEditPendaftar');
+
+    let daftarPendaftar = [];
+
+    // 1. Ambil seluruh data dari API (method GET)
+    async function muatDataAdmin() {
+        try {
+            const response = await fetch(API_URL);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                ringkasanKuota.innerHTML = '';
+                result.sesi.forEach(s => {
+                    ringkasanKuota.innerHTML += `
+                    <div class="kuota-card">
+                        <div>
+                            <strong>${s.nama_sesi}</strong>
+                            <span>${s.waktu}</span>
+                        </div>
+                        <div class="kuota-angka">Sisa: ${s.kuota_tersisa}</div>
+                    </div>
+                    `;
+                });
+
+                //Render data pendaftar ke tabel
+                daftarPendaftar = result.pendaftar;
+                tabelPendaftar.innerHTML = '';
+
+                if (daftarPendaftar.length === 0) {
+                    tabelPendaftar.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="center">Belum ada data pendaftar.</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                daftarPendaftar.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="center">${index + 1}</td>
+                        <td>${item.nama_siswa}</td>
+                        <td>${item.provinsi}</td>
+                        <td>${item.sesi_dipilih}</td>
+                        <td>${item.mapel_pilihan}</td>
+                        <td>${item.created_at || '-'}</td>
+                        <td class="center">
+                            <button class="btn btn-edit" onclick="bukaEdit(${item.id})">Edit</button>
+                            <button class="btn btn-delete" onclick="hapusPendaftar(${item.id})">Hapus</button>
+                        </td>
+                    `;
+                    tabelPendaftar.appendChild(tr);
+                });
+            }
+        }catch (error) {
+            tabelPendaftar.innerHTML = `
+                <tr>
+                    <td colspan="7" class="center">Terjadi kesalahan saat memuat data.</td>
+                </tr>
+            `;
+        }
+    }
+    
+    // 2. tampilkan form edit data pendaftar yang dipilih
+    function bukaEdit(id) {
+        const siswa = daftarPendaftar.find(item => parseInt(item.id) === parseInt(id));
+        if (!siswa) return;
+
+        document.getElementById('edit_id').value = siswa.id;
+        document.getElementById('edit_nama').value = siswa.nama_siswa;
+        document.getElementById('edit_provinsi').value = siswa.provinsi;
+        document.getElementById('edit_sesi').value = siswa.sesi_dipilih;
+        document.getElementById('edit_mapel').value = siswa.mapel_pilihan;
+
+        formEditContainer.style.display = 'block';
+        formEditContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.getElementById('btn-batal-edit').addEventListener('click', () => {
+        formEditContainer.style.display = 'none';
+        formEditPendaftar.reset();
+    });
+
+    // 3. Simpan perubahan data pendaftar (method PUT)
+    formEditPendaftar.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const payload = {
+            id: document.getElementById('edit_id').value,
+            nama_siswa: document.getElementById('edit_nama').value,
+            provinsi: document.getElementById('edit_provinsi').value,
+            sesi_dipilih: document.getElementById('edit_sesi').value,
+            mapel_pilihan: document.getElementById('edit_mapel').value
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (response.ok && result.status === 'susccess') {
+                alert(result.message);
+                formEditContainer.style.display = 'none';
+                muatDataAdmin(); // Refresh data pendaftar
+            } else {
+                alert(result.message || 'Terjadi kesalahan saat menyimpan data.');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat menyimpan data.');
+        }
+    });
+
+    // 4. Hapus data pendaftar (method DELETE)
+    async function hapusPendaftar(id) {
+        if (!confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?')) { 
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}?id=${id}`, { 
+                method: 'DELETE' 
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                alert(result.message);
+                muatDataAdmin(); // Refresh data pendaftar
+            } else {
+                alert(result.message || 'Terjadi kesalahan saat menghapus data.');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat menghapus data.');
+        }
+    }
+
+    // Muat data saat halaman pertama kali dibuka
+    muatDataAdmin();
+</script>
+</body>
+</html>
