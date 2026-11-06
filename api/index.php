@@ -62,20 +62,20 @@ elseif ($method === 'POST') {
     $sql = "INSERT INTO pendaftar (nama_siswa, provinsi, sesi_dipilih, mapel_pilihan) VALUES ('$nama', '$provinsi', '$sesiStr', '$mapelStr')";
 
     if ($conn->query($sql)) {
-        // untuk mengurangi kuota setiap sesi yang dicentang
+        // Kurangi kuota setiap sesi yang dicentang
         foreach ($sesiArr as $namaSesi) {
             $namaSesiEsc = $conn->real_escape_string($namaSesi);
-            $conn->query("UPDATE sesi_tryout SET kuota_tersisa = kuota_tersisa -1 WHERE nama_sesi = '$namaSesiEsc' AND kuota_tersisa > 0");
+            $conn->query("UPDATE sesi_tryout SET kuota_tersisa = kuota_tersisa - 1 WHERE nama_sesi = '$namaSesiEsc' AND kuota_tersisa > 0");
         }
         http_response_code(201);
-        echo json_encode(["status" => "success", "message" => "Pendaftar berhasil disimpan"]);
-    }else{
+        echo json_encode(["status" => "success", "message" => "Pendaftaran berhasil disimpan"]);
+    } else {
         http_response_code(500);
         echo json_encode(["status" => "error", "message" => "Gagal menyimpan data"]);
     }
 }
 
-// 3. METHOD PUT : update data
+// 3. Method PUT: Update data pendaftar dari halaman Admin
 elseif ($method === 'PUT') {
     $input = json_decode(file_get_contents("php://input"), true);
 
@@ -102,7 +102,7 @@ elseif ($method === 'PUT') {
     }
 }
 
-// 4. METHOD DELETE : hapus data pendaftar dari halaman Admin
+// 4. Method DELETE: Hapus data pendaftar dari halaman Admin
 elseif ($method === 'DELETE') {
     $id = intval($_GET['id'] ?? 0);
     if ($id <= 0) {

@@ -41,6 +41,43 @@
             color: #1e3a8a;
         }
 
+        .kuota-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .kuota-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kuota-card strong {
+            color: #1e3a8a;
+            font-size: 15px;
+        }
+
+        .kuota-card span {
+            font-size: 13px;
+            color: #64748b;
+            display: block;
+        }
+
+        .kuota-angka {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 14px;
+        }
+
         .table-wrapper {
             overflow-x: auto;
         }
@@ -81,6 +118,12 @@
             margin-right: 4px;
         }
 
+        .btn-refresh {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            padding: 8px 14px;
+        }
+
         .btn-edit {
             background-color: #f59e0b;
             color: #ffffff;
@@ -99,14 +142,13 @@
             background-color: #dc2626;
         }
 
-        /* Styling Form/Modal Edit (Untuk Method PUT) */
         .edit-section {
             margin-top: 28px;
             padding: 20px;
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            display: none; /* Ubah ke block via JS saat tombol Edit diklik */
+            display: none;
         }
 
         .edit-section h2 {
@@ -140,11 +182,13 @@
         .btn-save {
             background-color: #2563eb;
             color: #ffffff;
+            padding: 9px 16px;
         }
 
         .btn-cancel {
             background-color: #64748b;
             color: #ffffff;
+            padding: 9px 16px;
         }
     </style>
 </head>
@@ -153,7 +197,11 @@
 <div class="container">
     <div class="header">
         <h1>Dashboard Admin - Data Pendaftar Try Out</h1>
+        <button class="btn btn-refresh" onclick="muatDataAdmin()">Muat Ulang Data</button>
     </div>
+
+    <!-- Info Ringkasan Sisa Kuota Sesi -->
+    <div class="kuota-summary" id="ringkasan-kuota"></div>
 
     <div class="table-wrapper">
         <table>
@@ -165,19 +213,18 @@
                     <th>Sesi Dipilih</th>
                     <th>Mapel Pilihan</th>
                     <th>Waktu Daftar</th>
-                    <th class="center" style="width: 150px;">Aksi</th>
+                    <th class="center" style="width: 160px;">Aksi</th>
                 </tr>
             </thead>
             <tbody id="tabel-pendaftar">
-                <!-- Baris data pendaftar dari database akan dirender di sini -->
                 <tr>
-                    <td colspan="7" class="center">Belum ada data pendaftar.</td>
+                    <td colspan="7" class="center">Memuat data pendaftar...</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Form Edit Data Pendaftar (Siap dipakai untuk Method PUT) -->
+    <!-- Form Edit Data Pendaftar (Method PUT) -->
     <div class="edit-section" id="form-edit-container">
         <h2>Edit Data Pendaftar</h2>
         <form id="formEditPendaftar">
@@ -193,7 +240,7 @@
                 </div>
                 <div class="form-group">
                     <label for="edit_sesi">Sesi Dipilih</label>
-                    <input type="text" id="edit_sesi" name="sesi_dipilih" placeholder="Contoh: Sesi 1, Sesi 2" required>
+                    <input type="text" id="edit_sesi" name="sesi_dipilih" placeholder="Contoh: Sesi 1" required>
                 </div>
                 <div class="form-group">
                     <label for="edit_mapel">Mapel Pilihan</label>
@@ -206,7 +253,6 @@
     </div>
 </div>
 
-<!-- Tempat menambahkan kode JavaScript / Fetch API Anda -->
 <script>
     const API_URL = '../api/index.php';
     const tabelPendaftar = document.getElementById('tabel-pendaftar');
@@ -216,7 +262,7 @@
 
     let daftarPendaftar = [];
 
-    // 1. Ambil seluruh data dari API (method GET)
+    // Ambil data dari API (Method GET)
     async function muatDataAdmin() {
         try {
             const response = await fetch(API_URL);
@@ -226,26 +272,21 @@
                 ringkasanKuota.innerHTML = '';
                 result.sesi.forEach(s => {
                     ringkasanKuota.innerHTML += `
-                    <div class="kuota-card">
-                        <div>
-                            <strong>${s.nama_sesi}</strong>
-                            <span>${s.waktu}</span>
+                        <div class="kuota-card">
+                            <div>
+                                <strong>${s.nama_sesi}</strong>
+                                <span>${s.waktu}</span>
+                            </div>
+                            <div class="kuota-angka">Sisa: ${s.kuota_tersisa}</div>
                         </div>
-                        <div class="kuota-angka">Sisa: ${s.kuota_tersisa}</div>
-                    </div>
                     `;
                 });
 
-                //Render data pendaftar ke tabel
                 daftarPendaftar = result.pendaftar;
                 tabelPendaftar.innerHTML = '';
 
                 if (daftarPendaftar.length === 0) {
-                    tabelPendaftar.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="center">Belum ada data pendaftar.</td>
-                        </tr>
-                    `;
+                    tabelPendaftar.innerHTML = '<tr><td colspan="7" class="center">Belum ada data pendaftar.</td></tr>';
                     return;
                 }
 
@@ -266,16 +307,11 @@
                     tabelPendaftar.appendChild(tr);
                 });
             }
-        }catch (error) {
-            tabelPendaftar.innerHTML = `
-                <tr>
-                    <td colspan="7" class="center">Terjadi kesalahan saat memuat data.</td>
-                </tr>
-            `;
+        } catch (error) {
+            tabelPendaftar.innerHTML = '<tr><td colspan="7" class="center">Gagal memuat data dari server API.</td></tr>';
         }
     }
-    
-    // 2. tampilkan form edit data pendaftar yang dipilih
+
     function bukaEdit(id) {
         const siswa = daftarPendaftar.find(item => parseInt(item.id) === parseInt(id));
         if (!siswa) return;
@@ -290,21 +326,21 @@
         formEditContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
-    document.getElementById('btn-batal-edit').addEventListener('click', () => {
+    document.getElementById('btn-batal-edit').addEventListener('click', function () {
         formEditContainer.style.display = 'none';
         formEditPendaftar.reset();
     });
 
-    // 3. Simpan perubahan data pendaftar (method PUT)
+    // Simpan perubahan data (Method PUT)
     formEditPendaftar.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const payload = {
             id: document.getElementById('edit_id').value,
-            nama_siswa: document.getElementById('edit_nama').value,
-            provinsi: document.getElementById('edit_provinsi').value,
-            sesi_dipilih: document.getElementById('edit_sesi').value,
-            mapel_pilihan: document.getElementById('edit_mapel').value
+            nama_siswa: document.getElementById('edit_nama').value.trim(),
+            provinsi: document.getElementById('edit_provinsi').value.trim(),
+            sesi_dipilih: document.getElementById('edit_sesi').value.trim(),
+            mapel_pilihan: document.getElementById('edit_mapel').value.trim()
         };
 
         try {
@@ -313,46 +349,47 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
             const result = await response.json();
 
-            if (response.ok && result.status === 'susccess') {
+            if (response.ok && result.status === 'success') {
                 alert(result.message);
                 formEditContainer.style.display = 'none';
-                muatDataAdmin(); // Refresh data pendaftar
+                muatDataAdmin();
             } else {
-                alert(result.message || 'Terjadi kesalahan saat menyimpan data.');
+                alert(result.message || 'Gagal memperbarui data.');
             }
         } catch (error) {
-            alert('Terjadi kesalahan saat menyimpan data.');
+            alert('Terjadi kesalahan koneksi saat memperbarui data.');
         }
     });
 
-    // 4. Hapus data pendaftar (method DELETE)
+    // Hapus data (Method DELETE)
     async function hapusPendaftar(id) {
-        if (!confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?')) { 
+        if (!confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?')) {
             return;
         }
 
         try {
-            const response = await fetch(`${API_URL}?id=${id}`, { 
-                method: 'DELETE' 
+            const response = await fetch(`${API_URL}?id=${id}`, {
+                method: 'DELETE'
             });
 
             const result = await response.json();
 
             if (response.ok && result.status === 'success') {
                 alert(result.message);
-                muatDataAdmin(); // Refresh data pendaftar
+                muatDataAdmin();
             } else {
-                alert(result.message || 'Terjadi kesalahan saat menghapus data.');
+                alert(result.message || 'Gagal menghapus data.');
             }
         } catch (error) {
-            alert('Terjadi kesalahan saat menghapus data.');
+            alert('Terjadi kesalahan koneksi saat menghapus data.');
         }
     }
 
-    // Muat data saat halaman pertama kali dibuka
     muatDataAdmin();
 </script>
+
 </body>
 </html>

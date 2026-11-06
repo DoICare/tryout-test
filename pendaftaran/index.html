@@ -45,6 +45,27 @@
             color: #64748b;
         }
 
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
         .form-group {
             margin-bottom: 24px;
         }
@@ -76,7 +97,6 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
-        /* Grid 38 Provinsi */
         .provinsi-box {
             max-height: 260px;
             overflow-y: auto;
@@ -112,7 +132,6 @@
             cursor: pointer;
         }
 
-        /* Tabel Sesi Try Out */
         .table-wrapper {
             overflow-x: auto;
         }
@@ -155,10 +174,14 @@
             font-size: 13px;
         }
 
-        /* Grid Mapel Pilihan */
+        .badge-habis {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
         .mapel-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 12px;
             padding: 14px;
             border: 1px solid #cbd5e1;
@@ -166,26 +189,7 @@
             background-color: #f8fafc;
         }
 
-        .alert {
-            display: none;
-            margin-bottom: 20px;
-            padding: 12px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .alert-success {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .alert-error {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Tombol Submit */
-        .btnSubmit {
+        .btn-submit {
             width: 100%;
             background-color: #2563eb;
             color: #ffffff;
@@ -198,8 +202,13 @@
             transition: background-color 0.2s;
         }
 
-        .btnSubmit:hover {
+        .btn-submit:hover {
             background-color: #1d4ed8;
+        }
+
+        .btn-submit:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -210,6 +219,8 @@
         <h1>Form Pendaftaran Try Out</h1>
         <p>Silakan lengkapi data diri, sesi, dan mata pelajaran pilihan Anda</p>
     </div>
+
+    <div id="alertBox" class="alert"></div>
 
     <form id="formPendaftaran">
         <!-- 1. Nama Siswa -->
@@ -263,9 +274,9 @@
             </div>
         </div>
 
-        <!-- 3. Pilih Sesi Try Out -->
+        <!-- 3. Pilih Sesi Try Out (Checkbox dengan validasi Single Choice) -->
         <div class="form-group">
-            <label class="form-label">3. Pilih Sesi Try Out <span class="required">*</span></label>
+            <label class="form-label">3. Pilih Sesi Try Out (Pilih 1 Sesi) <span class="required">*</span></label>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -278,37 +289,16 @@
                     </thead>
                     <tbody id="tabel-sesi">
                         <tr>
-                            <td class="center">
-                                <input type="checkbox" name="sesi_dipilih" value="Sesi 1">
-                            </td>
-                            <td>Sesi 1</td>
-                            <td>08:00 - 11:15</td>
-                            <td class="center"><span class="badge-kuota" id="kuota-sesi-1">150</span></td>
-                        </tr>
-                        <tr>
-                            <td class="center">
-                                <input type="checkbox" name="sesi_dipilih" value="Sesi 2">
-                            </td>
-                            <td>Sesi 2</td>
-                            <td>12:00 - 15:15</td>
-                            <td class="center"><span class="badge-kuota" id="kuota-sesi-2">150</span></td>
-                        </tr>
-                        <tr>
-                            <td class="center">
-                                <input type="checkbox" name="sesi_dipilih" value="Sesi 3">
-                            </td>
-                            <td>Sesi 3</td>
-                            <td>15:15 - 18:30</td>
-                            <td class="center"><span class="badge-kuota" id="kuota-sesi-3">150</span></td>
+                            <td colspan="4" class="center">Memuat data kuota sesi...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- 4. Mapel Pilihan -->
+        <!-- 4. Mapel Pilihan (3 Checkbox) -->
         <div class="form-group">
-            <label class="form-label">4. Mata Pelajaran Pilihan (Boleh lebih dari satu) <span class="required">*</span></label>
+            <label class="form-label">4. Mapel Wajib / Pilihan (Boleh lebih dari satu) <span class="required">*</span></label>
             <div class="mapel-grid">
                 <label class="checkbox-item">
                     <input type="checkbox" name="mapel_pilihan" value="Sejarah"> Sejarah
@@ -323,20 +313,17 @@
         </div>
 
         <!-- 5. Submit -->
-        <button type="submit" class="btnSubmit">Daftar Try Out Sekarang</button>
+        <button type="submit" id="btnSubmit" class="btn-submit">Daftar Try Out Sekarang</button>
     </form>
 </div>
 
-<!-- Tempat menambahkan kode JavaScript / Fetch API Anda -->
 <script>
     const API_URL = '../api/index.php';
     const tabelSesi = document.getElementById('tabel-sesi');
     const formPendaftaran = document.getElementById('formPendaftaran');
-    const alertBox = document.createElement('div');
-    alertBox.className = 'alert';
-    document.querySelector('.container').prepend(alertBox);
-    const btnSubmit = document.querySelector('.btnSubmit');
-    
+    const alertBox = document.getElementById('alertBox');
+    const btnSubmit = document.getElementById('btnSubmit');
+
     function tampilkanPesan(pesan, tipe) {
         alertBox.textContent = pesan;
         alertBox.className = 'alert ' + (tipe === 'success' ? 'alert-success' : 'alert-error');
@@ -344,7 +331,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Ambil data kuota sesi dari API (method GET)
+    // Ambil data kuota sesi dari API (Method GET)
     async function muatKuotaSesi() {
         try {
             const response = await fetch(API_URL);
@@ -353,44 +340,65 @@
             if (result.status === 'success') {
                 tabelSesi.innerHTML = '';
                 result.sesi.forEach(item => {
-                    const kuota  = parseInt(item.kuota_tersisa);
+                    const kuota = parseInt(item.kuota_tersisa);
                     const isHabis = kuota <= 0;
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="center">
-                            <input type="checkbox" name="sesi_dipilih" value="${item.nama_sesi}" ${isHabis ? 'disabled' : ''}>
+                            <input type="checkbox" class="sesi-checkbox" name="sesi_dipilih" value="${item.nama_sesi}" ${isHabis ? 'disabled' : ''}>
                         </td>
                         <td>${item.nama_sesi}</td>
                         <td>${item.waktu}</td>
                         <td class="center">
-                            <span class="badge-kuota" ${isHabis ? 'badge-habis' : ''}>
+                            <span class="badge-kuota ${isHabis ? 'badge-habis' : ''}">
                                 ${isHabis ? 'Penuh (0)' : kuota}
                             </span>
                         </td>
                     `;
                     tabelSesi.appendChild(tr);
                 });
+
+                // Pasang logika Single-Choice pada checkbox sesi
+                pasangEventCheckboxSesi();
             }
         } catch (error) {
-            tabelSesi.innerHTML = '<tr><td colspan="4" class="center">Gagal memuat kuota data sesi. Silakan coba lagi.</td></tr>';
+            tabelSesi.innerHTML = '<tr><td colspan="4" class="center">Gagal memuat kuota sesi dari server.</td></tr>';
         }
     }
-    
-    // Kirim data pendaftaran ke API (method POST)
+
+    // Opsi 2: Tetap Checkbox, tetapi dibatasi otomatis maksimal 1 sesi yang dicentang
+    function pasangEventCheckboxSesi() {
+        const checkboxes = document.querySelectorAll('.sesi-checkbox');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                if (this.checked) {
+                    checkboxes.forEach(otherCb => {
+                        if (otherCb !== this) {
+                            otherCb.checked = false;
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    // Kirim data pendaftaran ke API (Method POST)
     formPendaftaran.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const namaSiswa = document.getElementById('nama_siswa').value.trim();
         const provinsiEl = document.querySelector('input[name="provinsi"]:checked');
         const provinsi = provinsiEl ? provinsiEl.value : '';
+
         const sesiArr = Array.from(document.querySelectorAll('input[name="sesi_dipilih"]:checked')).map(cb => cb.value);
         const mapelArr = Array.from(document.querySelectorAll('input[name="mapel_pilihan"]:checked')).map(cb => cb.value);
 
         if (!namaSiswa || !provinsi || sesiArr.length === 0 || mapelArr.length === 0) {
-            tampilkanPesan('Harap lengkapi nama, provinsi, minimal 1 sesi, dan pilihan mata pelajaran.', 'error');
+            tampilkanPesan('Harap lengkapi nama, pilih provinsi, pilih 1 sesi try out, dan minimal 1 mapel!', 'error');
             return;
         }
+
         btnSubmit.disabled = true;
         btnSubmit.textContent = 'Memproses Pendaftaran...';
 
@@ -409,11 +417,11 @@
             const result = await response.json();
 
             if (response.ok && result.status === 'success') {
-                tampilkanPesan(result.message,'success');
+                tampilkanPesan(result.message, 'success');
                 formPendaftaran.reset();
-                await muatKuotaSesi(); // Refresh kuota sesi setelah pendaftaran
+                await muatKuotaSesi();
             } else {
-                tampilkanPesan(result.message || 'Gagal mengirim data pendaftaran. Silakan coba lagi.', 'error');
+                tampilkanPesan(result.message || 'Gagal menyimpan pendaftaran.', 'error');
             }
         } catch (error) {
             tampilkanPesan('Terjadi kesalahan koneksi ke server API.', 'error');
@@ -423,7 +431,6 @@
         }
     });
 
-    // Muat kuota sesi saat halaman dimuat
     muatKuotaSesi();
 </script>
 
